@@ -1,7 +1,7 @@
 describe('Basic user flow for Website', () => {
   // First, visit the lab 8 website
   beforeAll(async () => {
-    await page.goto('https://cse110-f2021.github.io/Lab8_Website');
+    await page.goto('http://127.0.0.1:5500/index.html');
   });
 
   // Next, check to make sure that all 20 <product-item> elements have loaded
@@ -18,6 +18,7 @@ describe('Basic user flow for Website', () => {
   // Check to make sure that all 20 <product-item> elements have data in them
   it('Make sure <product-item> elements are populated', async () => {
     console.log('Checking to make sure <product-item> elements are populated...');
+
     // Start as true, if any don't have data, swap to false
     let allArePopulated = true;
     let data, plainValue;
@@ -33,11 +34,20 @@ describe('Basic user flow for Website', () => {
     if (plainValue.price.length == 0) { allArePopulated = false; }
     if (plainValue.image.length == 0) { allArePopulated = false; }
     // Expect allArePopulated to still be true
-    expect(allArePopulated).toBe(true);
 
     // TODO - Step 1
     // Right now this function is only checking the first <product-item> it found, make it so that
     // it checks every <product-item> it found
+    for(let i = 1; i < prodItems.length; i++){
+      console.log(`Checking product item ${i}/${prodItems.length}`);
+      data = await prodItems[i].getProperty('data');
+      plainValue = await data.jsonValue();
+
+      if (plainValue.title.length == 0) { allArePopulated = false; }
+      if (plainValue.price.length == 0) { allArePopulated = false; }
+      if (plainValue.image.length == 0) { allArePopulated = false; }
+    }
+    expect(allArePopulated).toBe(true);
 
   }, 10000);
 
@@ -50,6 +60,13 @@ describe('Basic user flow for Website', () => {
     // Grab the shadowRoot of that element (it's a property), then query a button from that shadowRoot.
     // Once you have the button, you can click it and check the innerText property of the button.
     // Once you have the innerText property, use innerText['_remoteObject'].value to get the text value of it
+
+    const products = await page.$$('product-item');
+    const shadow = await products[0].getProperty("shadowRoot");
+    const button = await shadow.$("button");
+    await button.click();
+    const buttonText = await button.getProperty("innerText");
+    expect(buttonText['_remoteObject'].value).toBe("Remove from Cart");
   }, 2500);
 
   // Check to make sure that after clicking "Add to Cart" on every <product-item> that the Cart
